@@ -42,6 +42,20 @@ class HiveDatabase {
     return _myBox.containsKey('ALL_EXPENSE');
   }
 
+  // save budget data
+  Future<void> saveBudgetData(String monthlyIncome) async {
+    await _myBox.put('MONTHLY_INCOME', monthlyIncome);
+  }
+
+  // load budget data
+  String loadBudgetData() {
+    return _myBox.get('MONTHLY_INCOME') ?? '0.0';
+  }
+
+  bool hasSavedBudget() {
+    return _myBox.containsKey('MONTHLY_INCOME');
+  }
+
   Future<bool> boxExists() async {
     return Hive.boxExists('expense_data');
   }

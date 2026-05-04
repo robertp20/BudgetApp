@@ -9,66 +9,61 @@ class ExpenseSummary extends StatelessWidget {
 
   const ExpenseSummary({super.key, required this.startOfWeek, required this.expenseData});
 
-  //calculate max amount in bar graph
-  double calculateMaxY(){
+  Map<String, double> getWeeklySummary() {
     final dailySummary = expenseData.calculateDailyExpenseSummary();
+    return {
+      convertDateTimeToSting(startOfWeek.add(const Duration(days: 0))): dailySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 0)))] ?? 0,
+      convertDateTimeToSting(startOfWeek.add(const Duration(days: 1))): dailySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 1)))] ?? 0,
+      convertDateTimeToSting(startOfWeek.add(const Duration(days: 2))): dailySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 2)))] ?? 0,
+      convertDateTimeToSting(startOfWeek.add(const Duration(days: 3))): dailySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 3)))] ?? 0,
+      convertDateTimeToSting(startOfWeek.add(const Duration(days: 4))): dailySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 4)))] ?? 0,
+      convertDateTimeToSting(startOfWeek.add(const Duration(days: 5))): dailySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 5)))] ?? 0,
+      convertDateTimeToSting(startOfWeek.add(const Duration(days: 6))): dailySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 6)))] ?? 0,
+    };
+  }
+
+  double calculateMaxY() {
+    final weeklySummary = getWeeklySummary();
     double maxY = 0;
-    dailySummary.forEach((key, value) {
-      if(value > maxY){
+    for (final value in weeklySummary.values) {
+      if (value > maxY) {
         maxY = value;
       }
-    });
-    //add 20% to maxY for better visualization
-   // maxY = maxY + (maxY * 0.2);
+    }
     return maxY;
   }
 
-  //calculate week total
-  double calculateWeekTotal(){
-    final dailySummary = expenseData.calculateDailyExpenseSummary();
-    double weekTotal = 0;
-    dailySummary.forEach((key, value) {
-      weekTotal += value;
-    });
-    return weekTotal;
+  double calculateWeekTotal() {
+    final weeklySummary = getWeeklySummary();
+    return weeklySummary.values.fold(0.0, (double sum, double value) => sum + value);
   }
 
   @override
   Widget build(BuildContext context) {
-    //get yyyymmdd 
-    String sunday = convertDateTimeToSting(startOfWeek.add(Duration(days: 0)));
-    String monday = convertDateTimeToSting(startOfWeek.add(Duration(days: 1)));
-    String tuesday = convertDateTimeToSting(startOfWeek.add(Duration(days: 2)));
-    String wednesday = convertDateTimeToSting(startOfWeek.add(Duration(days: 3)));
-    String thursday = convertDateTimeToSting(startOfWeek.add(Duration(days: 4)));
-    String friday = convertDateTimeToSting(startOfWeek.add(Duration(days: 5)));
-    String saturday = convertDateTimeToSting(startOfWeek.add(Duration(days: 6)));
-
-    final dailySummary = expenseData.calculateDailyExpenseSummary();
+    final weeklySummary = getWeeklySummary();
 
     return Column(
       children: [
         //week total
-
         Text(
           'Week total:  €${calculateWeekTotal().toStringAsFixed(2)}',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.bold
+            fontWeight: FontWeight.bold,
           ),
-        ),  
+        ),
 
         SizedBox(
-          height: 200-39,
+          height: 200 - 39,
           child: MyBarChart(
             maxY: calculateMaxY(),
-            sunAmount: dailySummary[sunday] ?? 0,
-            monAmount: dailySummary[monday] ?? 0,
-            tueAmount: dailySummary[tuesday] ?? 0,
-            wedAmount: dailySummary[wednesday] ?? 0,
-            thuAmount: dailySummary[thursday] ?? 0,
-            friAmount: dailySummary[friday] ?? 0,
-            satAmount: dailySummary[saturday] ?? 0,
+            sunAmount: weeklySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 0)))] ?? 0,
+            monAmount: weeklySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 1)))] ?? 0,
+            tueAmount: weeklySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 2)))] ?? 0,
+            wedAmount: weeklySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 3)))] ?? 0,
+            thuAmount: weeklySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 4)))] ?? 0,
+            friAmount: weeklySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 5)))] ?? 0,
+            satAmount: weeklySummary[convertDateTimeToSting(startOfWeek.add(const Duration(days: 6)))] ?? 0,
           ),
         ),
       ],
