@@ -1,4 +1,5 @@
 import 'package:app_1/models/expense_item.dart';
+import 'package:app_1/models/income_item.dart';
 import 'package:hive/hive.dart';
 
 class HiveDatabase {
@@ -13,6 +14,8 @@ class HiveDatabase {
       singleExpense.add(expense.name);
       singleExpense.add(expense.amount);
       singleExpense.add(expense.dateTime);
+      singleExpense.add(expense.category);
+      singleExpense.add(expense.isRecurring);
       allExpenseConverted.add(singleExpense);
     }
 
@@ -29,9 +32,17 @@ class HiveDatabase {
       String name = singleExpense[0];
       String amount = singleExpense[1];
       DateTime dateTime = singleExpense[2];
+      String category = singleExpense.length > 3 ? singleExpense[3] : 'food';
+      bool isRecurring = singleExpense.length > 4 ? singleExpense[4] : false; // Default to false for backward compatibility
 
       allExpenseList.add(
-        ExpenseItem(name: name, amount: amount, dateTime: dateTime),
+        ExpenseItem(
+          name: name,
+          amount: amount,
+          dateTime: dateTime,
+          category: category,
+          isRecurring: isRecurring,
+        ),
       );
     }
 
@@ -40,6 +51,31 @@ class HiveDatabase {
 
   bool hasSavedExpenses() {
     return _myBox.containsKey('ALL_EXPENSE');
+  }
+
+  // save incomes
+  Future<void> saveIncomes(List<IncomeItem> allIncomes) async {
+    List<Map<String, dynamic>> incomesConverted = [];
+    for (var income in allIncomes) {
+      incomesConverted.add(income.toMap());
+    }
+    await _myBox.put('ALL_INCOMES', incomesConverted);
+  }
+
+  // load incomes
+  List<IncomeItem> loadIncomes() {
+    List savedIncomes = _myBox.get('ALL_INCOMES') ?? [];
+    List<IncomeItem> allIncomesList = [];
+
+    for (var income in savedIncomes) {
+      allIncomesList.add(IncomeItem.fromMap(income));
+    }
+
+    return allIncomesList;
+  }
+
+  bool hasSavedIncomes() {
+    return _myBox.containsKey('ALL_INCOMES');
   }
 
   // save budget data

@@ -1,7 +1,7 @@
 import 'package:app_1/Pages/first_page.dart';
 import 'package:app_1/Pages/home_page.dart';
 import 'package:app_1/Pages/profile.dart';
-import 'package:app_1/Pages/setting_page.dart';
+import 'package:app_1/Pages/report_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 

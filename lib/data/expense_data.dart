@@ -86,4 +86,66 @@ class ExpenseData {
     }
     return dailyExpenseSummary;
   }
+
+  //get expenses filtered by category
+  List<ExpenseItem> getExpensesByCategory(String category) {
+    return overallExpenseList.where((expense) => expense.category == category).toList();
+  }
+
+  //get all unique categories from expenses
+  List<String> getAllCategoriesFromExpenses() {
+    final categories = <String>{};
+    for (var expense in overallExpenseList) {
+      categories.add(expense.category);
+    }
+    return categories.toList();
+  }
+
+  //calculate total expense by category
+  Map<String, double> calculateCategoryTotals() {
+    Map<String, double> categoryTotals = {};
+
+    for (var expense in overallExpenseList) {
+      double amount = double.parse(expense.amount);
+
+      if (categoryTotals.containsKey(expense.category)) {
+        categoryTotals[expense.category] = categoryTotals[expense.category]! + amount;
+      } else {
+        categoryTotals[expense.category] = amount;
+      }
+    }
+    return categoryTotals;
+  }
+
+  //get recurring expenses only
+  List<ExpenseItem> getRecurringExpenses() {
+    return overallExpenseList.where((expense) => expense.isRecurring).toList();
+  }
+
+  //get one-time expenses only
+  List<ExpenseItem> getOneTimeExpenses() {
+    return overallExpenseList.where((expense) => !expense.isRecurring).toList();
+  }
+
+  //calculate total monthly recurring expenses
+  double getTotalRecurringExpenses() {
+    return getRecurringExpenses().fold(
+      0.0,
+      (double sum, ExpenseItem expense) => sum + (double.tryParse(expense.amount) ?? 0.0),
+    );
+  }
+
+  //calculate total one-time expenses (current month)
+  double getTotalOneTimeExpenses() {
+    final now = DateTime.now();
+    final currentMonth = now.month;
+    final currentYear = now.year;
+
+    return getOneTimeExpenses()
+        .where((expense) => expense.dateTime.month == currentMonth && expense.dateTime.year == currentYear)
+        .fold(
+          0.0,
+          (double sum, ExpenseItem expense) => sum + (double.tryParse(expense.amount) ?? 0.0),
+        );
+  }
 }

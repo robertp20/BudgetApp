@@ -7,7 +7,7 @@ class SettingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text("Settings Page"),
+        child: Text("Report Page"),
       ),
     );
   }
