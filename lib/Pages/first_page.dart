@@ -3,6 +3,8 @@ import 'package:app_1/Pages/profile.dart';
 import 'package:app_1/Pages/report_page.dart';
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FirstPage extends StatefulWidget {
    const FirstPage({super.key});
@@ -16,6 +18,24 @@ class _FirstPageState extends State<FirstPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isDarkTheme = false;
   String _selectedCurrency = 'USD';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemePreference();
+  }
+
+  Future<void> _loadThemePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
+    });
+  }
+
+  Future<void> _saveThemePreference(bool isDark) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkTheme', isDark);
+  }
 
   void _navigateBottomBar (int index){
     setState(() {
@@ -102,6 +122,7 @@ class _FirstPageState extends State<FirstPage> {
                     setState(() {
                       _isDarkTheme = value;
                     });
+                    _saveThemePreference(value);
                   },
                 ),
               ),
@@ -118,21 +139,22 @@ class _FirstPageState extends State<FirstPage> {
                       ),
                     ),
                     SizedBox(height: 8),
-                    DropdownButton<String>(
-                      value: _selectedCurrency,
-                      isExpanded: true,
-                      items: <String>['BAM','EUR', 'USD', 'GBP']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedCurrency = newValue ?? 'USD';
-                        });
-                      },
+                    DropdownButton2<String>(
+                    value: _selectedCurrency,
+                    isExpanded: true,
+
+                    items: ['BAM', 'EUR', 'USD', 'GBP']
+                        .map((item) => DropdownMenuItem<String>(
+                              value: item,
+                              child: Text(item),
+                            ))
+                        .toList(),
+
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCurrency = value!;
+                      });
+                    },
                     ),
                   ],
                 ),
@@ -159,8 +181,8 @@ class _FirstPageState extends State<FirstPage> {
               label: "Profile",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: "Settings",
+              icon: Icon(Icons.align_vertical_bottom),
+              label: "Report",
             )
           ],
         ),

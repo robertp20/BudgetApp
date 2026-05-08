@@ -148,4 +148,61 @@ class ExpenseData {
           (double sum, ExpenseItem expense) => sum + (double.tryParse(expense.amount) ?? 0.0),
         );
   }
+
+  //calculate monthly expense summary for the current year
+  Map<String, double> calculateMonthlySummary() {
+    Map<String, double> monthlySummary = {
+      'Jan': 0,
+      'Feb': 0,
+      'Mar': 0,
+      'Apr': 0,
+      'May': 0,
+      'Jun': 0,
+      'Jul': 0,
+      'Aug': 0,
+      'Sep': 0,
+      'Oct': 0,
+      'Nov': 0,
+      'Dec': 0,
+    };
+
+    final currentYear = DateTime.now().year;
+
+    for (var expense in overallExpenseList) {
+      if (expense.dateTime.year == currentYear) {
+        double amount = double.parse(expense.amount);
+        final monthName = _getMonthName(expense.dateTime.month);
+        monthlySummary[monthName] = (monthlySummary[monthName] ?? 0) + amount;
+      }
+    }
+    return monthlySummary;
+  }
+
+  //calculate yearly expense summary (last 12 months)
+  Map<String, double> calculateYearlySummary() {
+    Map<String, double> yearlySummary = {};
+    final now = DateTime.now();
+
+    for (int i = 11; i >= 0; i--) {
+      final year = now.year - (i ~/ 12);
+      final month = 12 - (11 - i);
+      final date = DateTime(year, month);
+      yearlySummary['${date.year}-${date.month.toString().padLeft(2, '0')}'] = 0;
+    }
+
+    for (var expense in overallExpenseList) {
+      double amount = double.parse(expense.amount);
+      final key = '${expense.dateTime.year}-${expense.dateTime.month.toString().padLeft(2, '0')}';
+      if (yearlySummary.containsKey(key)) {
+        yearlySummary[key] = yearlySummary[key]! + amount;
+      }
+    }
+    return yearlySummary;
+  }
+
+  //helper method to get month name
+  String _getMonthName(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1];
+  }
 }
