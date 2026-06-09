@@ -5,6 +5,7 @@ class ExpenseItem{
   final DateTime dateTime;
   final String category;
   final bool isRecurring;
+  final String currency;
 
   ExpenseItem({
     required this.name,
@@ -12,5 +13,6 @@ class ExpenseItem{
     required this.dateTime,
     required this.category,
     required this.isRecurring,
+    this.currency = 'EUR',
   });
 }

@@ -56,10 +56,8 @@ class IncomeTile extends StatelessWidget {
               child: Consumer<CurrencyData>(
                 builder: (context, currencyData, _) {
                   final symbol = CurrencyConverter.getCurrencySymbol(currencyData.selectedCurrency);
-                  final amount = double.tryParse(income.amount) ?? 0.0;
-                  final convertedAmount = currencyData.convertAmount(amount, income.currency, currencyData.selectedCurrency);
                   return Text(
-                    '+$symbol${convertedAmount.toStringAsFixed(2)}',
+                    '+$symbol${income.amount}',
                     style: const TextStyle(
                       color: Colors.green,
                       fontSize: 12,

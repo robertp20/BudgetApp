@@ -1,6 +1,8 @@
 import 'package:app_1/models/expense_item.dart';
+import 'package:app_1/models/exchange_rate.dart';
 import 'package:app_1/models/income_item.dart';
 import 'package:hive/hive.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HiveDatabase {
   //reference our box lazily after Hive is opened
@@ -16,6 +18,7 @@ class HiveDatabase {
       singleExpense.add(expense.dateTime);
       singleExpense.add(expense.category);
       singleExpense.add(expense.isRecurring);
+      singleExpense.add(expense.currency);
       allExpenseConverted.add(singleExpense);
     }
 
@@ -33,7 +36,8 @@ class HiveDatabase {
       String amount = singleExpense[1];
       DateTime dateTime = singleExpense[2];
       String category = singleExpense.length > 3 ? singleExpense[3] : 'food';
-      bool isRecurring = singleExpense.length > 4 ? singleExpense[4] : false; // Default to false for backward compatibility
+      bool isRecurring = singleExpense.length > 4 ? singleExpense[4] : false;
+      String currency = singleExpense.length > 5 ? singleExpense[5] : 'EUR';
 
       allExpenseList.add(
         ExpenseItem(
@@ -42,6 +46,7 @@ class HiveDatabase {
           dateTime: dateTime,
           category: category,
           isRecurring: isRecurring,
+          currency: currency,
         ),
       );
     }
@@ -94,5 +99,31 @@ class HiveDatabase {
 
   Future<bool> boxExists() async {
     return Hive.boxExists('expense_data');
+  }
+
+  // save exchange rates
+  Future<void> saveExchangeRates(ExchangeRate exchangeRate) async {
+    await _myBox.put('EXCHANGE_RATES', exchangeRate.toMap());
+  }
+
+  // load exchange rates
+  ExchangeRate? loadExchangeRates() {
+    final data = _myBox.get('EXCHANGE_RATES');
+    if (data != null) {
+      return ExchangeRate.fromMap(Map<String, dynamic>.from(data as Map));
+    }
+    return null;
+  }
+
+  // save selected currency
+  Future<void> saveSelectedCurrency(String currency) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('SELECTED_CURRENCY', currency);
+  }
+
+  // load selected currency
+  String loadSelectedCurrency() {
+    final box = Hive.box('expense_data');
+    return box.get('SELECTED_CURRENCY', defaultValue: 'EUR') as String;
   }
 }

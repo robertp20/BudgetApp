@@ -4,6 +4,7 @@ class IncomeItem {
   final String amount;
   final bool isRecurring;
   final DateTime dateAdded;
+  final String currency;
 
   IncomeItem({
     required this.id,
@@ -11,6 +12,7 @@ class IncomeItem {
     required this.amount,
     required this.isRecurring,
     required this.dateAdded,
+    this.currency = 'EUR',
   });
 
   // Convert to map for storage
@@ -21,6 +23,7 @@ class IncomeItem {
       'amount': amount,
       'isRecurring': isRecurring,
       'dateAdded': dateAdded.toIso8601String(),
+      'currency': currency,
     };
   }
 
@@ -32,6 +35,7 @@ class IncomeItem {
       amount: map['amount'] as String,
       isRecurring: map['isRecurring'] as bool? ?? true,
       dateAdded: DateTime.parse(map['dateAdded'] as String),
+      currency: map['currency'] as String? ?? 'EUR',
     );
   }
 }

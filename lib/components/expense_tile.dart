@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:app_1/data/expense_data.dart';
 import 'package:app_1/data/category_data.dart';
+import 'package:app_1/data/currency_converter.dart';
+import 'package:app_1/data/currency_data.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:provider/provider.dart';
 
 class ExpenseTile extends StatelessWidget {
   final String name;
@@ -67,7 +70,12 @@ class ExpenseTile extends StatelessWidget {
               ),
           ],
         ),
-        trailing: Text('-$amount€'),
+        trailing: Consumer<CurrencyData>(
+          builder: (context, currencyData, _) {
+            final symbol = CurrencyConverter.getCurrencySymbol(currencyData.selectedCurrency);
+            return Text('-$symbol$amount');
+          },
+        ),
       ),
     );
   }

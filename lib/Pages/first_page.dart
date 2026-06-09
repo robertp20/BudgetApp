@@ -126,7 +126,7 @@ class _FirstPageState extends State<FirstPage> {
                   },
                 ),
               ),
-              Padding(
+             /* Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,10 +158,12 @@ class _FirstPageState extends State<FirstPage> {
                     ),
                   ],
                 ),
-              ),
+              ),*/
             ],
           ),
         ),
+
+        
 
         body: _pages[_selectedIndex],
 

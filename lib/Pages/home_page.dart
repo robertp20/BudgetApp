@@ -7,8 +7,11 @@ import 'package:app_1/data/budget_data.dart';
 import 'package:app_1/data/expense_data.dart';
 import 'package:app_1/data/income_data.dart';
 import 'package:app_1/data/category_data.dart';
+import 'package:app_1/data/currency_converter.dart';
+import 'package:app_1/data/currency_data.dart';
 import 'package:app_1/models/expense_item.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class _SemiCircleGaugePainter extends CustomPainter {
   final double progress;
@@ -37,7 +40,7 @@ class _SemiCircleGaugePainter extends CustomPainter {
 
     canvas.drawArc(rect, pi, pi, false, backgroundPaint);
 
-    if (progress > 0) {
+    if (progress >= 0) {
       final sweepAngle = pi * progress;
       canvas.drawArc(rect, pi, sweepAngle, false, foregroundPaint);
     }
@@ -124,7 +127,12 @@ class _HomePageState extends State<HomePage> {
                 //expense amount - euros and cents
                 Row(
                   children: [
-                    const Text('€'),
+                    Consumer<CurrencyData>(
+                      builder: (context, currencyData, _) {
+                        final symbol = CurrencyConverter.getCurrencySymbol(currencyData.selectedCurrency);
+                        return Text(symbol);
+                      },
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
@@ -434,94 +442,118 @@ class _HomePageState extends State<HomePage> {
     return max(0.0, left);
   }
 
+  
+
   double getBudgetProgress() {
-    final totalIncome = getTotalIncome();
-    if (totalIncome <= 0) return 0.0;
-    final spent = getTotalExpenses();
-    return min(1.0, spent / totalIncome);
-  }
+  final totalIncome = getTotalIncome();
+  if (totalIncome <= 0) return 0.0;
+
+  final spent = getTotalExpenses();
+
+  if (spent > totalIncome) return 1.0;
+
+  return 1.0 - (spent / totalIncome);
+}
 
   Widget buildBudgetGauge() {
     final budgetLeft = getBudgetLeft();
     final progress = getBudgetProgress();
     final spent = getTotalExpenses();
     final totalIncome = getTotalIncome();
-    final overBudget = totalIncome > 0 && spent > totalIncome;
-    final gaugeColor = overBudget
-        ? Colors.red
-        : (progress < 0.8 ? Colors.green : Colors.orange);
-    final budgetLabel = totalIncome > 0
-        ? (overBudget
-            ? 'Over budget'
-            : '€${budgetLeft.toStringAsFixed(2)} left')
-        : 'Add income in Profile';
-    final subLabel = totalIncome > 0
-        ? (overBudget
-            ? '€${(spent - totalIncome).abs().toStringAsFixed(2)} over'
-            : '€${spent.toStringAsFixed(2)} spent')
-        : '';
+    final overBudget = spent > totalIncome;
+   
+    final percentText =
+    totalIncome <= 0
+        ? '0% remaining'
+        : overBudget
+            ? '0% remaining'
+            : '${(progress * 100).toStringAsFixed(0)}% remaining';
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Monthly Budget',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 140,
-              child: Stack(
-                children: [
-                  CustomPaint(
-                    size: const Size(double.infinity, 140),
-                    painter: _SemiCircleGaugePainter(progress, gaugeColor),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            budgetLabel,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: totalIncome > 0
-                                  ? Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black
-                                  : Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          if (totalIncome > 0) ...[
-                            Text(
-                              subLabel,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Theme.of(context).brightness == Brightness.dark
+    final gaugeColor = overBudget
+    ? Colors.red
+    : progress > 0.5
+        ? Colors.green
+        : progress > 0.2
+            ? Colors.orange
+            : Colors.red;
+
+    return Consumer<CurrencyData>(
+      builder: (context, currencyData, _) {
+        final symbol = CurrencyConverter.getCurrencySymbol(currencyData.selectedCurrency);
+        
+        final budgetLabel = totalIncome > 0
+            ? (overBudget
+                ? 'Over budget'
+                : '$symbol${budgetLeft.toStringAsFixed(2)} left')
+            : 'Add income in Profile';
+        final subLabel = totalIncome > 0
+            ? (overBudget
+                ? '$symbol${(spent - totalIncome).abs().toStringAsFixed(2)} over'
+                : '$symbol${spent.toStringAsFixed(2)} spent')
+            : '';
+
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Monthly Budget',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 140,
+                  child: Stack(
+                    children: [
+                      CustomPaint(
+                        size: const Size(double.infinity, 140),
+                        painter: _SemiCircleGaugePainter(progress, gaugeColor),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                budgetLabel,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: totalIncome > 0
+                                      ? Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black
+                                      : Colors.grey.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              if (totalIncome > 0) ...[
+                                Text(
+                                  subLabel,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).brightness == Brightness.dark
                                     ? Colors.grey.shade300
                                     : Colors.grey.shade700,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${(progress * 100).toStringAsFixed(0)}% remaining',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.shade400
-                                    : Colors.grey.shade600,
+                              //'${(progress * 100).toStringAsFixed(0)}% remaining',
+                               percentText,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade600,
                               ),
                             ),
                           ],
@@ -535,6 +567,8 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+    );
+      },
     );
   }
 
