@@ -119,14 +119,39 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Row(
+                 Row(
                   children: [
-                    Expanded(
-                      child: const Text(
-                        'Recurring income?',
-                        style: TextStyle(fontWeight: FontWeight.w500),
+                    const Text(
+                      'Recurring income?',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+
+                    const SizedBox(width: 6),
+
+                    Tooltip(
+                      message:
+                       'A recurring income is an income\n'
+                          'that repeats automatically every\n'
+                          'month, such as salary or pension.\n',                   
+                        textStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                      preferBelow: false,
+                      verticalOffset: 20,
+                      padding: const EdgeInsets.all(20),
+                       decoration: BoxDecoration(
+                        color: const Color.fromARGB(221, 15, 15, 15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: Colors.grey,
                       ),
                     ),
+
+                    const Spacer(),
                     Switch(
                       value: isRecurringIncome,
                       onChanged: (value) {

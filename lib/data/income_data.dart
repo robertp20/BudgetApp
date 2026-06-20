@@ -53,4 +53,18 @@ class IncomeData {
           (double sum, IncomeItem income) => sum + (double.tryParse(income.amount) ?? 0.0),
         );
   }
+
+  // Get total income for current month (recurring + one-time)
+  double getCurrentMonthIncome() {
+    final now = DateTime.now();
+    final currentMonth = now.month;
+    final currentYear = now.year;
+
+    return incomeList
+        .where((income) => income.dateAdded.month == currentMonth && income.dateAdded.year == currentYear)
+        .fold(
+          0.0,
+          (double sum, IncomeItem income) => sum + (double.tryParse(income.amount) ?? 0.0),
+        );
+  }
 }

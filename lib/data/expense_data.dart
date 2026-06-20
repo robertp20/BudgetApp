@@ -1,6 +1,9 @@
 import 'package:app_1/data/hive_database.dart';
 import 'package:app_1/date_time/date_time_helper.dart';
 import 'package:app_1/models/expense_item.dart';
+import 'package:app_1/models/income_item.dart';
+import 'package:app_1/data/income_data.dart';
+import 'dart:math';
 
 class ExpenseData {
   //list of ALL expenses
@@ -101,17 +104,22 @@ class ExpenseData {
     return categories.toList();
   }
 
-  //calculate total expense by category
+  //calculate total expense by category (current month only)
   Map<String, double> calculateCategoryTotals() {
     Map<String, double> categoryTotals = {};
+    final now = DateTime.now();
+    final currentMonth = now.month;
+    final currentYear = now.year;
 
     for (var expense in overallExpenseList) {
-      double amount = double.parse(expense.amount);
+      if (expense.dateTime.month == currentMonth && expense.dateTime.year == currentYear) {
+        double amount = double.parse(expense.amount);
 
-      if (categoryTotals.containsKey(expense.category)) {
-        categoryTotals[expense.category] = categoryTotals[expense.category]! + amount;
-      } else {
-        categoryTotals[expense.category] = amount;
+        if (categoryTotals.containsKey(expense.category)) {
+          categoryTotals[expense.category] = categoryTotals[expense.category]! + amount;
+        } else {
+          categoryTotals[expense.category] = amount;
+        }
       }
     }
     return categoryTotals;
@@ -147,6 +155,11 @@ class ExpenseData {
           0.0,
           (double sum, ExpenseItem expense) => sum + (double.tryParse(expense.amount) ?? 0.0),
         );
+  }
+
+  //calculate total expenses for current month (recurring + one-time)
+  double getTotalExpenses() {
+    return getTotalRecurringExpenses() + getTotalOneTimeExpenses();
   }
 
   //calculate monthly expense summary for the current year
@@ -204,5 +217,92 @@ class ExpenseData {
   String _getMonthName(int month) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return months[month - 1];
+  }
+
+  //calculate total savings (cumulative income - expenses)
+  double getTotalSavings(double totalIncome) {
+    final totalExpenses = getTotalExpenseAmountAllTime();
+    return max(0.0, totalIncome - totalExpenses);
+  }
+
+  //get total expense amount for all time
+  double getTotalExpenseAmountAllTime() {
+    return overallExpenseList.fold(
+      0.0,
+      (double sum, ExpenseItem expense) => sum + (double.tryParse(expense.amount) ?? 0.0),
+    );
+  }
+
+  //calculate monthly savings for current month
+  double getMonthlySavings(double monthlyIncome) {
+    final now = DateTime.now();
+    final currentMonth = now.month;
+    final currentYear = now.year;
+
+    final monthlyExpenses = overallExpenseList
+        .where((expense) => expense.dateTime.month == currentMonth && expense.dateTime.year == currentYear)
+        .fold(
+          0.0,
+          (double sum, ExpenseItem expense) => sum + (double.tryParse(expense.amount) ?? 0.0),
+        );
+
+    return max(0.0, monthlyIncome - monthlyExpenses);
+  }
+
+  //get total savings for previous months (from first month with data through last month)
+  double getTotalSavingsPreviousMonths(IncomeData incomeData) {
+    if (overallExpenseList.isEmpty) return 0.0;
+
+    // Find the earliest month with any data
+    DateTime? earliestDate;
+    for (var expense in overallExpenseList) {
+      if (earliestDate == null || expense.dateTime.isBefore(earliestDate)) {
+        earliestDate = expense.dateTime;
+      }
+    }
+
+    if (earliestDate == null) return 0.0;
+
+    final now = DateTime.now();
+    double totalSavingsPreviousMonths = 0.0;
+
+    // Iterate from earliest month to previous month
+    DateTime currentIterMonth = DateTime(earliestDate.year, earliestDate.month, 1);
+    DateTime lastMonth = DateTime(now.year, now.month, 1);
+
+    while (currentIterMonth.isBefore(lastMonth)) {
+      // Calculate income for this month
+      final monthIncome = incomeData.incomeList
+          .where((income) =>
+              income.dateAdded.year == currentIterMonth.year &&
+              income.dateAdded.month == currentIterMonth.month)
+          .fold(
+            0.0,
+            (double sum, IncomeItem income) => sum + (double.tryParse(income.amount) ?? 0.0),
+          );
+      
+      // Calculate expenses for this month
+      final monthExpenses = overallExpenseList
+          .where((expense) =>
+              expense.dateTime.year == currentIterMonth.year &&
+              expense.dateTime.month == currentIterMonth.month)
+          .fold(
+            0.0,
+            (double sum, ExpenseItem expense) => sum + (double.tryParse(expense.amount) ?? 0.0),
+          );
+
+      // Add monthly savings (income - expenses)
+      totalSavingsPreviousMonths += max(0.0, monthIncome - monthExpenses);
+
+      // Move to next month
+      currentIterMonth = DateTime(currentIterMonth.year, currentIterMonth.month + 1, 1);
+    }
+
+    return totalSavingsPreviousMonths;
+  }
+
+  //calculate current month savings (same as budget left on home page)
+  double getCurrentMonthSavings(double totalMonthlyIncome, double totalMonthlyExpenses) {
+    return max(0.0, totalMonthlyIncome - totalMonthlyExpenses);
   }
 }

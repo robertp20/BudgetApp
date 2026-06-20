@@ -194,9 +194,37 @@ class _HomePageState extends State<HomePage> {
                 //recurring toggle
                 Row(
                   children: [
-                    Expanded(
-                      child: const Text('Recurring expense?', style: TextStyle(fontWeight: FontWeight.w500)),
+                    const Text(
+                      'Recurring expense?',
+                      style: TextStyle(fontWeight: FontWeight.w500),
                     ),
+
+                    const SizedBox(width: 6),
+
+                    Tooltip(
+                      message:
+                       'A recurring expense is an expense\n'
+                          'that repeats automatically every\n'
+                          'month, such as rent or subscriptions.\n',                   
+                        textStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                      preferBelow: false,
+                      verticalOffset: 20,
+                      padding: const EdgeInsets.all(20),
+                       decoration: BoxDecoration(
+                        color: const Color.fromARGB(221, 15, 15, 15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                    ),
+
+                    const Spacer(),
                     Switch(
                       value: tempIsRecurring,
                       onChanged: (value) {
