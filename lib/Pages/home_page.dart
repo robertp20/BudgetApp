@@ -406,13 +406,17 @@ class _HomePageState extends State<HomePage> {
 
   List<ExpenseItem> getFilteredExpenses() {
     if (selectedFilterCategory == 'all') {
-      return expenseData.GetAllExpenseList();
+      return expenseData.GetAllExpenseList().reversed.toList();
     } else {
-      return expenseData.getExpensesByCategory(selectedFilterCategory);
+      return expenseData.getExpensesByCategory(selectedFilterCategory).reversed.toList();
     }
   }
 
   void showCategoryPieChart() {
+    final now = DateTime.now();
+    final monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    final currentMonth = monthNames[now.month - 1];
+
     showDialog(
       context: context,
       builder: (context) {
@@ -431,9 +435,19 @@ class _HomePageState extends State<HomePage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Expense Categories',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Expense Categories',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            currentMonth,
+                            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                          ),
+                        ],
                       ),
                       IconButton(
                         icon: const Icon(Icons.close),
@@ -499,9 +513,9 @@ class _HomePageState extends State<HomePage> {
 
     final gaugeColor = overBudget
     ? Colors.red
-    : progress > 0.5
+    : progress > 0.33
         ? Colors.green
-        : progress > 0.2
+        : progress > 0.1
             ? Colors.orange
             : Colors.red;
 

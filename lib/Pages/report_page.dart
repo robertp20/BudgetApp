@@ -67,6 +67,11 @@ class _SettingPageState extends State<SettingPage> {
     final totalMonthlyExpenses = expenseData.getTotalExpenses();
     final currentMonthSavings = expenseData.getCurrentMonthSavings(totalMonthlyIncome, totalMonthlyExpenses);
     final totalSavingsPreviousMonths = expenseData.getTotalSavingsPreviousMonths(incomeData);
+    
+    // Get current month name
+    final now = DateTime.now();
+    final monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    final currentMonthName = monthNames[now.month - 1];
 
     return Scaffold(
       appBar: AppBar(
@@ -183,6 +188,22 @@ class _SettingPageState extends State<SettingPage> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // Month Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  currentMonthName,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
 
             TimePeriodSummary(expenseData: expenseData),
             const SizedBox(height: 20),

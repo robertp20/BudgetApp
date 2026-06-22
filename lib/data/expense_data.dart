@@ -164,31 +164,44 @@ class ExpenseData {
 
   //calculate monthly expense summary for the current year
   Map<String, double> calculateMonthlySummary() {
+    return calculateMonthlySummaryForYear(DateTime.now().year);
+  }
+
+  //calculate monthly expense summary for a given year
+  Map<String, double> calculateMonthlySummaryForYear(int year) {
     Map<String, double> monthlySummary = {
-      'Jan': 0,
-      'Feb': 0,
-      'Mar': 0,
-      'Apr': 0,
-      'May': 0,
-      'Jun': 0,
-      'Jul': 0,
-      'Aug': 0,
-      'Sep': 0,
-      'Oct': 0,
-      'Nov': 0,
-      'Dec': 0,
+      'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0,
+      'May': 0, 'Jun': 0, 'Jul': 0, 'Aug': 0,
+      'Sep': 0, 'Oct': 0, 'Nov': 0, 'Dec': 0,
     };
 
-    final currentYear = DateTime.now().year;
-
     for (var expense in overallExpenseList) {
-      if (expense.dateTime.year == currentYear) {
+      if (expense.dateTime.year == year) {
         double amount = double.parse(expense.amount);
         final monthName = _getMonthName(expense.dateTime.month);
         monthlySummary[monthName] = (monthlySummary[monthName] ?? 0) + amount;
       }
     }
     return monthlySummary;
+  }
+
+  //calculate daily expense summary for a specific month
+  Map<String, double> calculateDailyExpenseSummaryForMonth(int year, int month) {
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    Map<String, double> dailySummary = {};
+
+    for (int day = 1; day <= daysInMonth; day++) {
+      final key = '$year${month.toString().padLeft(2, '0')}${day.toString().padLeft(2, '0')}';
+      dailySummary[key] = 0;
+    }
+
+    for (var expense in overallExpenseList) {
+      if (expense.dateTime.year == year && expense.dateTime.month == month) {
+        final key = '$year${month.toString().padLeft(2, '0')}${expense.dateTime.day.toString().padLeft(2, '0')}';
+        dailySummary[key] = (dailySummary[key] ?? 0) + double.parse(expense.amount);
+      }
+    }
+    return dailySummary;
   }
 
   //calculate yearly expense summary (last 12 months)
