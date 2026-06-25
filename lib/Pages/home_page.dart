@@ -287,8 +287,12 @@ class _HomePageState extends State<HomePage> {
     String cents = newExpenseCentController.text.trim();
 
     if (name.isEmpty || euros.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in name and euro amount')),
+      showDialog(
+        context: dialogContext,
+        builder: (ctx) => AlertDialog(
+          content: const Text('Please fill in name and euro amount'),
+          actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))],
+        ),
       );
       return;
     }
@@ -302,15 +306,23 @@ class _HomePageState extends State<HomePage> {
     final centValue = int.tryParse(cents);
 
     if (euroValue == null || centValue == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Euro and cent must be whole numbers only')),
+      showDialog(
+        context: dialogContext,
+        builder: (ctx) => AlertDialog(
+          content: const Text('Euro and cent must be whole numbers only'),
+          actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))],
+        ),
       );
       return;
     }
 
     if (centValue < 0 || centValue > 99) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cent must be a number between 0 and 99')),
+      showDialog(
+        context: dialogContext,
+        builder: (ctx) => AlertDialog(
+          content: const Text('Cent must be a number between 0 and 99'),
+          actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))],
+        ),
       );
       return;
     }
