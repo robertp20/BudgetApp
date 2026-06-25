@@ -2,6 +2,7 @@ import 'package:app_1/Pages/home_page.dart';
 import 'package:app_1/Pages/profile.dart';
 import 'package:app_1/Pages/report_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,6 +44,10 @@ class _FirstPageState extends State<FirstPage> {
     });
   }
 
+  void closeApp() {
+    SystemNavigator.pop();
+  }
+
   final List _pages = [
     HomePage(),
     ProfilePage(),
@@ -77,8 +82,9 @@ class _FirstPageState extends State<FirstPage> {
         key: _scaffoldKey,
         
         appBar: AppBar(
-          title: Text("Test", style: TextStyle(color: Colors.black)),
+          title: Text("Budget", style: TextStyle(color: Colors.black)),
           backgroundColor: Colors.lightGreenAccent[200],
+          centerTitle: true,
           elevation: 0,
           iconTheme: IconThemeData(color: Colors.black),
           leading: IconButton(
@@ -90,7 +96,7 @@ class _FirstPageState extends State<FirstPage> {
           ),
           actions: [
             IconButton(
-              onPressed: () {},
+              onPressed: closeApp,
               icon: Icon(Icons.logout),
               color: Colors.black,
             )

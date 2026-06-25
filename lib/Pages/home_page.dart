@@ -11,6 +11,7 @@ import 'package:app_1/data/currency_converter.dart';
 import 'package:app_1/data/currency_data.dart';
 import 'package:app_1/models/expense_item.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class _SemiCircleGaugePainter extends CustomPainter {
@@ -138,6 +139,7 @@ class _HomePageState extends State<HomePage> {
                       child: TextField(
                         controller: newExpenseEuroController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                         decoration: const InputDecoration(hintText: 'Euro'),
                       ),
                     ),
@@ -149,6 +151,7 @@ class _HomePageState extends State<HomePage> {
                       child: TextField(
                         controller: newExpenseCentController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                         decoration: const InputDecoration(hintText: 'Cent'),
                       ),
                     ),
@@ -158,10 +161,15 @@ class _HomePageState extends State<HomePage> {
                 //category selection
                 const Text('Category:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 1.0,
                   children: CategoryData.getAllDefaultCategories().map((category) {
+                    final isSelected = tempSelectedCategory == category.id;
                     return GestureDetector(
                       onTap: () {
                         setStateDialog(() {
@@ -172,18 +180,25 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: tempSelectedCategory == category.id ? category.color : Colors.grey,
-                            width: tempSelectedCategory == category.id ? 2 : 1,
+                            color: isSelected ? category.color : Colors.grey,
+                            width: isSelected ? 2 : 1,
                           ),
                           borderRadius: BorderRadius.circular(8),
-                          color: tempSelectedCategory == category.id ? category.color.withAlpha(30) : Colors.transparent,
+                          color: isSelected ? category.color.withAlpha(30) : Colors.transparent,
                         ),
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(category.icon, color: category.color, size: 28),
                             const SizedBox(height: 4),
-                            Text(category.name, style: const TextStyle(fontSize: 12)),
+                            Text(
+                              category.name,
+                              style: const TextStyle(fontSize: 12),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ],
                         ),
                       ),
@@ -272,6 +287,9 @@ class _HomePageState extends State<HomePage> {
     String cents = newExpenseCentController.text.trim();
 
     if (name.isEmpty || euros.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in name and euro amount')),
+      );
       return;
     }
 
@@ -280,10 +298,26 @@ class _HomePageState extends State<HomePage> {
       cents = '0';
     }
 
-    // Ensure cents are 2 digits
-    if (cents.length == 1) {
-      cents = '0$cents';
+    final euroValue = int.tryParse(euros);
+    final centValue = int.tryParse(cents);
+
+    if (euroValue == null || centValue == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Euro and cent must be whole numbers only')),
+      );
+      return;
     }
+
+    if (centValue < 0 || centValue > 99) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cent must be a number between 0 and 99')),
+      );
+      return;
+    }
+
+    // Ensure cents are 2 digits
+    cents = centValue.toString().padLeft(2, '0');
+    euros = euroValue.toString();
 
     String amount = '$euros.$cents';
 

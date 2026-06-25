@@ -4,6 +4,7 @@ import 'package:app_1/data/currency_data.dart';
 import 'package:app_1/data/currency_converter.dart';
 import 'package:app_1/models/income_item.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -102,6 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: TextField(
                         controller: incomeEuroController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                         decoration: const InputDecoration(hintText: 'Euro'),
                       ),
                     ),
@@ -113,6 +115,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: TextField(
                         controller: incomeCentController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                         decoration: const InputDecoration(hintText: 'Cent'),
                       ),
                     ),
@@ -171,9 +174,11 @@ class _ProfilePageState extends State<ProfilePage> {
               child: const Text('Cancel'),
             ),
             MaterialButton(
-              onPressed: () {
-                saveIncome();
-                Navigator.pop(context);
+              onPressed: () async {
+                final saved = await saveIncome();
+                if (saved && mounted) {
+                  Navigator.pop(context);
+                }
               },
               child: const Text('Save'),
             ),
@@ -183,7 +188,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Future<void> saveIncome() async {
+  Future<bool> saveIncome() async {
     String name = incomeNameController.text.trim();
     String euros = incomeEuroController.text.trim();
     String cents = incomeCentController.text.trim();
@@ -192,16 +197,32 @@ class _ProfilePageState extends State<ProfilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
-      return;
+      return false;
     }
 
     if (cents.isEmpty) {
       cents = '0';
     }
 
-    if (cents.length == 1) {
-      cents = '0$cents';
+    final euroValue = int.tryParse(euros);
+    final centValue = int.tryParse(cents);
+
+    if (euroValue == null || centValue == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Euro and cent must be whole numbers only')),
+      );
+      return false;
     }
+
+    if (centValue < 0 || centValue > 99) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cent must be a number between 0 and 99')),
+      );
+      return false;
+    }
+
+    cents = centValue.toString().padLeft(2, '0');
+    euros = euroValue.toString();
 
     String amount = '$euros.$cents';
 
@@ -224,6 +245,8 @@ class _ProfilePageState extends State<ProfilePage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Income added: €$amount')),
     );
+
+    return true;
   }
 
   Future<void> deleteIncome(IncomeItem income) async {
@@ -309,7 +332,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                               ),
                               Text(
-                                '€${incomeData.getTotalIncome().toStringAsFixed(2)}',
+                                '€${incomeData.getCurrentMonthIncome().toStringAsFixed(2)}',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,

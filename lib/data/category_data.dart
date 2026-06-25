@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:app_1/models/expense_category.dart';
 
 class CategoryData {
+  static final Map<String, ExpenseCategory> _categoryLookup = {};
+
   // Default categories
   static final Map<String, ExpenseCategory> defaultCategories = {
     'food': ExpenseCategory(
@@ -28,21 +30,56 @@ class CategoryData {
       icon: Icons.receipt,
       color: Colors.red,
     ),
+    'personal care': ExpenseCategory(
+      id: 'personal_care',
+      name: 'Self care',
+      icon: Icons.person,
+      color: Colors.green,
+    ),
+    'other': ExpenseCategory(
+      id: 'other',
+      name: 'Other',
+      icon: Icons.category,
+      color: Colors.grey,
+    ),
   };
 
+  static void _ensureCategoriesLoaded() {
+    if (_categoryLookup.isNotEmpty) {
+      return;
+    }
+
+    for (final entry in defaultCategories.entries) {
+      _categoryLookup[entry.key] = entry.value;
+      _categoryLookup[entry.value.id] = entry.value;
+    }
+  }
+
+  static void addCategory(ExpenseCategory category) {
+    if (category.id.isEmpty) {
+      return;
+    }
+
+    _ensureCategoriesLoaded();
+    _categoryLookup[category.id] = category;
+  }
+
   static List<ExpenseCategory> getAllDefaultCategories() {
-    return defaultCategories.values.toList();
+    _ensureCategoriesLoaded();
+    return _categoryLookup.values.toSet().toList();
   }
 
   static ExpenseCategory getDefaultCategory() {
-    return defaultCategories['food']!; // Default to 'Food' category
+    return getCategoryById('food');
   }
 
   static ExpenseCategory getCategoryById(String id) {
-    return defaultCategories[id] ?? getDefaultCategory();
+    _ensureCategoriesLoaded();
+    return _categoryLookup[id] ?? getDefaultCategory();
   }
 
   static bool isValidCategoryId(String id) {
-    return defaultCategories.containsKey(id);
+    _ensureCategoriesLoaded();
+    return _categoryLookup.containsKey(id);
   }
 }
